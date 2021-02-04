@@ -56,7 +56,6 @@ class ControlDiskSpaceApp : public QMainWindow
 public:
     ControlDiskSpaceApp(QWidget *parent = Q_NULLPTR);
    
-
 private:
 
     QList<QStorageInfo> storageDevices;  
@@ -94,11 +93,8 @@ private:
     void write_settings_file(const SettingsInfo& info);
     void checkStorageDevices(const QVector<double>& reqFreeSpaceInfo);
     
-     
-
 private slots:
     void showMessage(int storage_index);
-    void runControl();
     void updateFreeSpaceLabel();
     void saveSettingsChanges();
 };

@@ -9,11 +9,6 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget *parent)
     this->storageDevices = QStorageInfo::mountedVolumes();
     this->settingsFilePath = "settings.txt";
 
-
-
-    
-    //connect(this->saveButton, &QAbstractButton::clicked, this, &ControlDiskSpaceApp::updateFreeSpaceLabel);
-
     fillWidgetsGrid();
     generateStartSettings();
 
@@ -25,33 +20,18 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget *parent)
 
     this->createTrayIcon();
     this->trayIcon->show();
-   // this->showMessage(0);
-    
-    //this->runControl();
 
     this->checker = new DiskCheckWorker(this->settingsFilePath, this->storageDevices);
     connect(checker, SIGNAL(showNotification(int)), this, SLOT(showMessage(int)));
 
     this->thread = new QThread(this);
  
-    connect(this, SIGNAL(destroyed()), this->thread, SLOT(quit()));
-
     this->checker->moveToThread(this->thread);
 
+    connect(this, SIGNAL(destroyed()), this, SLOT(terminateThread()));
     connect(this->thread, SIGNAL(started()), checker, SLOT(runCheck()));
-    thread->start();
-
-    
-    
+    thread->start();   
 }
-
-
-void ControlDiskSpaceApp::runControl()
-{
-    QMessageBox::warning(this, "Run control", "run");
-}
-
-
 
 
 void ControlDiskSpaceApp::showMessage(int storage_index)
@@ -175,7 +155,6 @@ void ControlDiskSpaceApp::fillWidgetsGrid()
 
     this->freeSpaceLabel = new QLabel(this);
     this->updateFreeSpaceLabel();
-    //add function that fill this label
     this->widgetLayout->addWidget(this->freeSpaceLabel, 2, 0, 1, 2);
 
     this->timeoutLabel = new QLabel(this);
@@ -213,7 +192,6 @@ void ControlDiskSpaceApp::updateFreeSpaceLabel()
 
 void ControlDiskSpaceApp::saveSettingsChanges()
 {
-
     auto setting_info = this->read_settings_file();
     int index_changed = this->StorageComboBox->currentIndex();
     double newReqFreeSpace = (double)this->storageDevices[this->StorageComboBox->currentIndex()].bytesTotal() / 1024 / 1024 / 1024;
@@ -221,8 +199,6 @@ void ControlDiskSpaceApp::saveSettingsChanges()
     setting_info.reqFreeSpace[index_changed] = newReqFreeSpace;
     setting_info.timeout = this->timeoutSpinBox->text().toInt();
     this->write_settings_file(setting_info);
-
-
 }
 
 void ControlDiskSpaceApp::createTrayIcon()
@@ -242,7 +218,6 @@ void ControlDiskSpaceApp::createTrayIcon()
     this->trayIconMenu->addSeparator();
     this->trayIconMenu->addAction(quitAction);
     this->trayIcon->setContextMenu(this->trayIconMenu);
-
 }
 
 
