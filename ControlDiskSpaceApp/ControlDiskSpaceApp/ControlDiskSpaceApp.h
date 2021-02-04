@@ -1,5 +1,7 @@
 #pragma once
 
+
+
 #include <QtWidgets/QMainWindow>
 #include <QStorageInfo>
 #include <QLabel>
@@ -27,6 +29,22 @@ struct SettingsInfo {
     int timeout;
 };
 
+
+class DiskCheckWorker : public QObject
+{
+    Q_OBJECT
+public:
+    DiskCheckWorker(QString fileSettingPath, QList<QStorageInfo> storageDevices);
+public slots:
+    void runCheck();
+private:
+    SettingsInfo read_file_settings();
+    void checkStorageDevices( const QVector<double>& reqFreeSpaceInfo);
+    QString settingFilePath;
+    QList<QStorageInfo> storageDevices;
+signals:
+    void showNotification(int count);
+};
 
 
 
@@ -64,6 +82,8 @@ private:
     QIcon* icon;
 
     QThread* thread;
+
+    DiskCheckWorker* checker;
     
     void fillWidgetsGrid();
     void fillStorageComboBox();
@@ -81,10 +101,6 @@ private slots:
     void runControl();
     void updateFreeSpaceLabel();
     void saveSettingsChanges();
-    
-    //void iconActivated(QSystemTrayIcon::ActivationReason reason);
-    
-    
 };
 
 

@@ -15,7 +15,7 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget *parent)
     //connect(this->saveButton, &QAbstractButton::clicked, this, &ControlDiskSpaceApp::updateFreeSpaceLabel);
 
     fillWidgetsGrid();
-    //generateStartSettings();
+    generateStartSettings();
 
     resize(400, 200);
     connect(this->diskFullnessSlider, &QAbstractSlider::valueChanged, this, &ControlDiskSpaceApp::updateFreeSpaceLabel);
@@ -29,16 +29,27 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget *parent)
     
     //this->runControl();
 
+    this->checker = new DiskCheckWorker(this->settingsFilePath, this->storageDevices);
+    connect(checker, SIGNAL(showNotification(int)), this, SLOT(showMessage(int)));
+
     this->thread = new QThread(this);
-    //moveToThread(this->thread);
+ 
     connect(this, SIGNAL(destroyed()), this->thread, SLOT(quit()));
-    //connect(this->thread, SIGNAL(started()), this, SLOT(runControl()));
-   // thread->start();
+
+    this->checker->moveToThread(this->thread);
+
+    connect(this->thread, SIGNAL(started()), checker, SLOT(runCheck()));
+    thread->start();
 
     
     
 }
 
+
+void ControlDiskSpaceApp::runControl()
+{
+    QMessageBox::warning(this, "Run control", "run");
+}
 
 
 
@@ -66,17 +77,7 @@ void ControlDiskSpaceApp::checkStorageDevices(const QVector<double>& reqFreeSpac
     }
 }
 
-void ControlDiskSpaceApp::runControl()
-{
 
-    while (1)
-    {
-        auto settingInfo = read_settings_file();
-        this->checkStorageDevices(settingInfo.reqFreeSpace);
-        //sleep(settingInfo.timeout);
-        QThread::msleep(settingInfo.timeout * 1000); 
-    }
-}
 
 
 
@@ -260,3 +261,59 @@ void ControlDiskSpaceApp::createActions()
 
 
 
+SettingsInfo DiskCheckWorker::read_file_settings()
+{
+    SettingsInfo info;
+    QFile settings_file(this->settingFilePath);
+    if (settings_file.open(QIODevice::ReadOnly | QIODevice::Text))
+    {
+        QTextStream in(&settings_file);
+        int device_count = this->storageDevices.size();
+        for (int i = 0; i < device_count; i++)
+        {
+            double tmp;
+            in >> tmp;
+            info.reqFreeSpace.push_back(tmp);
+        }
+        in >> info.timeout;
+        settings_file.close();
+    }
+    return info;
+}
+
+
+
+
+void DiskCheckWorker::runCheck()
+{
+    while (1)
+    {
+        auto settingsInfo = this->read_file_settings();
+        this->checkStorageDevices(settingsInfo.reqFreeSpace);
+        QThread::sleep(settingsInfo.timeout);
+
+    }
+}
+
+
+
+void DiskCheckWorker::checkStorageDevices(const QVector<double>& reqFreeSpaceInfo)
+{
+    for (int i = 0; i < this->storageDevices.size(); i++)
+    {
+        double freeSpace = (double)this->storageDevices[i].bytesFree() / 1024 / 1024 / 1024;
+        if (freeSpace < reqFreeSpaceInfo[i])
+        {
+            //run signal show message
+            emit this->showNotification(i);
+        }
+    }
+}
+
+
+
+DiskCheckWorker::DiskCheckWorker(QString  fileSettingPath, QList<QStorageInfo> storageDevices)
+{
+    this->settingFilePath = fileSettingPath;
+    this->storageDevices  = storageDevices;
+}
