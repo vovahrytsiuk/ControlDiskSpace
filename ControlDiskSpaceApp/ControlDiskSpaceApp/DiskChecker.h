@@ -21,7 +21,7 @@ private:
 public:
 	DiskChecker(const QString& fileSettingPath, const QList<QStorageInfo>& storageDevices, QObject * parent = nullptr);
 	void checkDisks(const QSettings& settingsInfo);
-	void runChecking();
+	
 	
 signals:
 	void showNotification(int diskPosition);

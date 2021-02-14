@@ -25,7 +25,8 @@
 #include <QSettings>
 #include <iostream>
 #include "DiskChecker.h"
-#include "SettingsInfo.h"
+
+
 
 
 
@@ -62,6 +63,8 @@ private:
     QSpinBox* timeoutSpinBox;
     QPushButton* saveButton;
     QPushButton* cancelButton;
+    QCheckBox* diskCheckableCheckBox;
+    QLabel* diskCheckableLabel;
 
     QString settingsFilePath;
 
@@ -83,14 +86,18 @@ private:
     void generateStartSettings();
     void createTrayIcon();
     void createActions();
-    SettingsInfo read_settings_file();
+
+    void increment_current_position_in_widgets_grid(int& row_numbew, int& column_number, 
+        int row_size, int column_size);
+
+    //SettingsInfo read_settings_file();
    // void write_settings_file(const SettingsInfo info);
     
     
 private slots:
     void showMessage(int diskPosition);
     void updateFreeSpaceLabel();
-    void saveSettingsChanges();
+   // void saveSettingsChanges();
    
 };
 

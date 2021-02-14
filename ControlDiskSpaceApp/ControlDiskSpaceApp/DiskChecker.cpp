@@ -64,25 +64,3 @@ void DiskChecker::run()
 	return;
 }
 
-
-void DiskChecker::runChecking()
-{
-	forever
-	{
-		QSettings settings(settingFilePath, QSettings::IniFormat);
-		int timeout = settings.value("Time/Timeout").toInt();
-		checkDisks(settings);
-		
-		int t = 0; // time counter for sleeping; we will check is Interruption requested each 100 msec
-		while (t < timeout * 1000)
-		{
-			if (isInterruptionRequested())
-			{
-				return;
-			}
-			t += 100;
-			QThread::msleep(100);
-		}
-
-	}
-}
