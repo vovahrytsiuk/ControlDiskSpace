@@ -3,58 +3,53 @@
 
 
 
-ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget *parent)
+ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget* parent)
     : QMainWindow(parent)
 {
-    this->storageDevices = QStorageInfo::mountedVolumes();
-    this->settingsFilePath = "config.ini";
+    std::cout << "hello" << std::endl;
+    storageDevices = QStorageInfo::mountedVolumes();
+    settingsFilePath = "config.ini";
 
     fillWidgetsGrid();
     generateStartSettings();
 
-    /*resize(400, 200);
-    connect(this->diskFullnessSlider, &QAbstractSlider::valueChanged, this, &ControlDiskSpaceApp::updateFreeSpaceLabel);
-    connect(this->StorageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ControlDiskSpaceApp::updateFreeSpaceLabel);
-    connect(this->saveButton, &QAbstractButton::clicked, this, &ControlDiskSpaceApp::saveSettingsChanges);
+    resize(400, 200);
+    connect(this->diskFullnessSlider, &QAbstractSlider::valueChanged, this,
+        &ControlDiskSpaceApp::updateFreeSpaceLabel);
+    connect(this->StorageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
+        &ControlDiskSpaceApp::updateFreeSpaceLabel);
+    connect(this->saveButton, &QAbstractButton::clicked, this,
+        &ControlDiskSpaceApp::saveSettingsChanges);
     connect(this->cancelButton, &QAbstractButton::clicked, this, &QMainWindow::hide);
+    
+    createTrayIcon();
+    trayIcon->show();
 
-    this->createTrayIcon();
-    this->trayIcon->show();
+    checker = new DiskChecker(settingsFilePath, storageDevices, this);
+    connect(checker, SIGNAL(showNotification(int)), this, 
+        SLOT(showMessage(int)));
+    connect(checker, SIGNAL(finished()), this, SLOT(showMessageBox()));
+   
 
-    this->checker = new DiskCheckWorker(this->settingsFilePath, this->storageDevices);
-    connect(checker, SIGNAL(showNotification(int)), this, SLOT(showMessage(int)));
+    //checker->runChecking();
+    checker->start();
 
-    this->thread = new QThread(this);
- 
-    this->checker->moveToThread(this->thread);
+       
 
+
+    /*
     connect(this, SIGNAL(destroyed()), this, SLOT(terminateThread()));
-    connect(this->thread, SIGNAL(started()), checker, SLOT(runCheck()));
-    thread->start();   */
+ */
 }
 
 
-void ControlDiskSpaceApp::showMessage(int storage_index)
+void ControlDiskSpaceApp::showMessage(int diskPosition)
 {
-    QString titleMessage = "Not enough free disk space " + this->storageDevices[storage_index].rootPath();
-    QString bodyMessage = "Free space on " + this->storageDevices[storage_index].rootPath() + " is only " + 
-        QString::number((double)this->storageDevices[storage_index].bytesFree() / 1024 / 1024 / 1024) + " GB ";
+    QString titleMessage = "Not enough free disk space " + storageDevices[diskPosition].rootPath();
+    QString bodyMessage = "Free space on " + storageDevices[diskPosition].rootPath() + " is only " + 
+        QString::number((double)storageDevices[diskPosition].bytesFree() / 1024 / 1024 / 1024) + " GB ";
    
     this->trayIcon->showMessage(titleMessage, bodyMessage);
-}
-
-
-
-void ControlDiskSpaceApp::checkStorageDevices(const QVector<double>& reqFreeSpaceInfo)
-{
-    for (int i = 0; i < storageDevices.size(); i++)
-    {
-        double freeSpace = (double)storageDevices[i].bytesFree() / 1024 / 1024 / 1024;
-        if (freeSpace < reqFreeSpaceInfo[i])
-        {
-           this->showMessage(i);
-        }
-    }
 }
 
 
@@ -88,47 +83,35 @@ SettingsInfo ControlDiskSpaceApp::read_settings_file()
 }
 
 
-void ControlDiskSpaceApp::write_settings_file(const SettingsInfo& info)
-{
-    QFile settings_file(this->settingsFilePath);
-    if (settings_file.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        QTextStream out(&settings_file);
-        for (const auto& n : info.reqFreeSpace)
-        {
-            out << n << "\n";
-        }
-        out << info.timeout << "\n";
-        settings_file.close();
-    }
-    else
-    {
-        QMessageBox::warning(this, "Error file", "Cannot open file");
-    }
-}
+//void ControlDiskSpaceApp::write_settings_file(const SettingsInfo& info)
+//{
+//    QFile settings_file(this->settingsFilePath);
+//    if (settings_file.open(QIODevice::WriteOnly | QIODevice::Text))
+//    {
+//        QTextStream out(&settings_file);
+//        for (const auto& n : info.reqFreeSpace)
+//        {
+//            out << n << "\n";
+//        }
+//        out << info.timeout << "\n";
+//        settings_file.close();
+//    }
+//    else
+//    {
+//        QMessageBox::warning(this, "Error file", "Cannot open file");
+//    }
+//}
 
 void ControlDiskSpaceApp::generateStartSettings()
 {
-    /*double freeSpaceRequirement = (100.00 - this->diskFullnessSlider->value()) / 100.00;
-    QFile settingsFile(this->settingsFilePath, this);
-    if (settingsFile.open(QIODevice::WriteOnly | QIODevice::Text))
-    {
-        QTextStream out(&settingsFile);
-        for (const auto& s : this->storageDevices)
-        {
-            double size = (double)s.bytesTotal() / 1024 / 1024 / 1024;
-            out << size * freeSpaceRequirement << '\n';
-        }
-        out << this->timeoutSpinBox->text() << "\n";
-    }*/
     double freeSpaceRequirement = (100.00 - this->diskFullnessSlider->value()) / 100.00;
     QSettings settings(settingsFilePath, QSettings::IniFormat);
     settings.setValue("Time/Timeout", 10);
     for (const auto& d : storageDevices)
     {
-        settings.setValue("Devices/" + d.rootPath() + "/Checkable", false);
+        settings.setValue(d.rootPath() + "/Checkable", true);
         double size = (double)d.bytesTotal() / 1024 / 1024 / 1024;
-        settings.setValue("Devices/" + d.rootPath() + "/Limit", size * freeSpaceRequirement);
+        settings.setValue(d.rootPath() + "/Limit", size * freeSpaceRequirement);
     }
 }
 
@@ -207,7 +190,7 @@ void ControlDiskSpaceApp::saveSettingsChanges()
     newReqFreeSpace *= (100.00 - this->diskFullnessSlider->value()) / 100.00;
     setting_info.reqFreeSpace[index_changed] = newReqFreeSpace;
     setting_info.timeout = this->timeoutSpinBox->text().toInt();
-    this->write_settings_file(setting_info);
+   // this->write_settings_file(setting_info);
 }
 
 void ControlDiskSpaceApp::createTrayIcon()
@@ -239,65 +222,20 @@ void ControlDiskSpaceApp::createActions()
     connect(hideAction, &QAction::triggered, this, &QMainWindow::hide);
 
     this->quitAction = new QAction("Quit", this);
-    connect(quitAction, &QAction::triggered, this,&QCoreApplication::quit);
+    connect(quitAction, &QAction::triggered, this, &ControlDiskSpaceApp::finishChecker);
 }
 
 
-
-
-SettingsInfo DiskCheckWorker::read_file_settings()
+void ControlDiskSpaceApp::finishChecker()
 {
-    SettingsInfo info;
-    QFile settings_file(this->settingFilePath);
-    if (settings_file.open(QIODevice::ReadOnly | QIODevice::Text))
-    {
-        QTextStream in(&settings_file);
-        int device_count = this->storageDevices.size();
-        for (int i = 0; i < device_count; i++)
-        {
-            double tmp;
-            in >> tmp;
-            info.reqFreeSpace.push_back(tmp);
-        }
-        in >> info.timeout;
-        settings_file.close();
-    }
-    return info;
+    qDebug() << "interaption requested";
+    checker->requestInterruption();
+    qDebug() << "startwaiting";
+    checker->wait();
+    qDebug() << "FinishWaiting";
+    QCoreApplication::quit();
 }
 
 
 
 
-void DiskCheckWorker::runCheck()
-{
-    while (1)
-    {
-        auto settingsInfo = this->read_file_settings();
-        this->checkStorageDevices(settingsInfo.reqFreeSpace);
-        QThread::sleep(settingsInfo.timeout);
-
-    }
-}
-
-
-
-void DiskCheckWorker::checkStorageDevices(const QVector<double>& reqFreeSpaceInfo)
-{
-    for (int i = 0; i < this->storageDevices.size(); i++)
-    {
-        double freeSpace = (double)this->storageDevices[i].bytesFree() / 1024 / 1024 / 1024;
-        if (freeSpace < reqFreeSpaceInfo[i])
-        {
-            //run signal show message
-            emit this->showNotification(i);
-        }
-    }
-}
-
-
-
-DiskCheckWorker::DiskCheckWorker(QString  fileSettingPath, QList<QStorageInfo> storageDevices)
-{
-    this->settingFilePath = fileSettingPath;
-    this->storageDevices = storageDevices;
-}

@@ -22,29 +22,18 @@
 #include <QCoreApplication>
 #include <QThread>
 #include <QDebug>
+#include <QSettings>
 #include <iostream>
-
-struct SettingsInfo {
-    QVector<double> reqFreeSpace;
-    int timeout;
-};
+#include "DiskChecker.h"
+#include "SettingsInfo.h"
 
 
-class DiskCheckWorker : public QObject
-{
-    Q_OBJECT
-public:
-    DiskCheckWorker(QString fileSettingPath, QList<QStorageInfo> storageDevices);
-public slots:
-    void runCheck();
-private:
-    SettingsInfo read_file_settings();
-    void checkStorageDevices( const QVector<double>& reqFreeSpaceInfo);
-    QString settingFilePath;
-    QList<QStorageInfo> storageDevices;
-signals:
-    void showNotification(int count);
-};
+
+
+
+
+
+
 
 
 
@@ -55,6 +44,9 @@ class ControlDiskSpaceApp : public QMainWindow
 
 public:
     ControlDiskSpaceApp(QWidget *parent = Q_NULLPTR);
+
+public slots:
+    void finishChecker();
    
 private:
 
@@ -70,8 +62,11 @@ private:
     QSpinBox* timeoutSpinBox;
     QPushButton* saveButton;
     QPushButton* cancelButton;
+
     QString settingsFilePath;
+
     QSystemTrayIcon* trayIcon;
+
     QMenu* trayIconMenu;
 
     QAction* quitAction;
@@ -80,9 +75,8 @@ private:
 
     QIcon* icon;
 
-    QThread* thread;
 
-    DiskCheckWorker* checker;
+    DiskChecker* checker;
     
     void fillWidgetsGrid();
     void fillStorageComboBox();
@@ -90,13 +84,14 @@ private:
     void createTrayIcon();
     void createActions();
     SettingsInfo read_settings_file();
-    void write_settings_file(const SettingsInfo& info);
-    void checkStorageDevices(const QVector<double>& reqFreeSpaceInfo);
+   // void write_settings_file(const SettingsInfo info);
+    
     
 private slots:
-    void showMessage(int storage_index);
+    void showMessage(int diskPosition);
     void updateFreeSpaceLabel();
     void saveSettingsChanges();
+   
 };
 
 
