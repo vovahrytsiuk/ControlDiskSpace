@@ -7,12 +7,12 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget *parent)
     : QMainWindow(parent)
 {
     this->storageDevices = QStorageInfo::mountedVolumes();
-    this->settingsFilePath = "settings.txt";
+    this->settingsFilePath = "config.ini";
 
     fillWidgetsGrid();
     generateStartSettings();
 
-    resize(400, 200);
+    /*resize(400, 200);
     connect(this->diskFullnessSlider, &QAbstractSlider::valueChanged, this, &ControlDiskSpaceApp::updateFreeSpaceLabel);
     connect(this->StorageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &ControlDiskSpaceApp::updateFreeSpaceLabel);
     connect(this->saveButton, &QAbstractButton::clicked, this, &ControlDiskSpaceApp::saveSettingsChanges);
@@ -30,7 +30,7 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget *parent)
 
     connect(this, SIGNAL(destroyed()), this, SLOT(terminateThread()));
     connect(this->thread, SIGNAL(started()), checker, SLOT(runCheck()));
-    thread->start();   
+    thread->start();   */
 }
 
 
@@ -109,7 +109,7 @@ void ControlDiskSpaceApp::write_settings_file(const SettingsInfo& info)
 
 void ControlDiskSpaceApp::generateStartSettings()
 {
-    double freeSpaceRequirement = (100.00 - this->diskFullnessSlider->value()) / 100.00;
+    /*double freeSpaceRequirement = (100.00 - this->diskFullnessSlider->value()) / 100.00;
     QFile settingsFile(this->settingsFilePath, this);
     if (settingsFile.open(QIODevice::WriteOnly | QIODevice::Text))
     {
@@ -120,6 +120,15 @@ void ControlDiskSpaceApp::generateStartSettings()
             out << size * freeSpaceRequirement << '\n';
         }
         out << this->timeoutSpinBox->text() << "\n";
+    }*/
+    double freeSpaceRequirement = (100.00 - this->diskFullnessSlider->value()) / 100.00;
+    QSettings settings(settingsFilePath, QSettings::IniFormat);
+    settings.setValue("Time/Timeout", 10);
+    for (const auto& d : storageDevices)
+    {
+        settings.setValue("Devices/" + d.rootPath() + "/Checkable", false);
+        double size = (double)d.bytesTotal() / 1024 / 1024 / 1024;
+        settings.setValue("Devices/" + d.rootPath() + "/Limit", size * freeSpaceRequirement);
     }
 }
 
@@ -290,5 +299,5 @@ void DiskCheckWorker::checkStorageDevices(const QVector<double>& reqFreeSpaceInf
 DiskCheckWorker::DiskCheckWorker(QString  fileSettingPath, QList<QStorageInfo> storageDevices)
 {
     this->settingFilePath = fileSettingPath;
-    this->storageDevices  = storageDevices;
+    this->storageDevices = storageDevices;
 }
