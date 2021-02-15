@@ -42,7 +42,7 @@ void ControlDiskSpaceApp::showMessage(int diskPosition)
     QString bodyMessage = "Free space on " + storageDevices[diskPosition].rootPath() + " is only " + 
         QString::number((double)storageDevices[diskPosition].bytesFree() / 1024 / 1024 / 1024) + " GB ";
    
-    this->trayIcon->showMessage(titleMessage, bodyMessage);
+    trayIcon->showMessage(titleMessage, bodyMessage);
 }
 
 void ControlDiskSpaceApp::generateStartSettings()
@@ -62,7 +62,7 @@ void ControlDiskSpaceApp::fillStorageComboBox()
 {
     for (const auto& s : this->storageDevices)
     {
-        this->StorageComboBox->addItem(s.rootPath());
+        StorageComboBox->addItem(s.rootPath());
     }
 }
 
@@ -84,68 +84,68 @@ void ControlDiskSpaceApp::fillWidgetsGrid()
                             // row_number in range 0..?
                             //to go to next position in grid use method
                             //increment_current_position_in_widgets_grid(row_number, column_number);
-    this->widgetLayout = new QGridLayout(this);
+    widgetLayout = new QGridLayout(this);
     
 
-    this->StorageLabel = new QLabel(this);
-    this->StorageLabel->setText("Storage device");
-    this->widgetLayout->addWidget(this->StorageLabel, row_number, column_number);
+    StorageLabel = new QLabel(this);
+    StorageLabel->setText("Storage device");
+    widgetLayout->addWidget(StorageLabel, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->StorageComboBox = new QComboBox(this);
-    this->fillStorageComboBox();
+    StorageComboBox = new QComboBox(this);
+    fillStorageComboBox();
 
-    this->diskCheckableLabel = new QLabel(this);
-    this->diskCheckableLabel->setText("Checkable");
+    diskCheckableLabel = new QLabel(this);
+    diskCheckableLabel->setText("Checkable");
 
-    this->diskCheckableCheckBox = new QCheckBox(this);
+    diskCheckableCheckBox = new QCheckBox(this);
 
-    this->checkableLayout = new QHBoxLayout(this);
-    this->checkableLayout->addWidget(StorageComboBox);
-    this->checkableLayout->addWidget(diskCheckableLabel);
-    this->checkableLayout->addWidget(diskCheckableCheckBox);
-    this->widgetLayout->addLayout(checkableLayout, row_number, column_number);
+    checkableLayout = new QHBoxLayout(this);
+    checkableLayout->addWidget(StorageComboBox);
+    checkableLayout->addWidget(diskCheckableLabel);
+    checkableLayout->addWidget(diskCheckableCheckBox);
+    widgetLayout->addLayout(checkableLayout, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->diskFullnessLabel = new QLabel(this);
-    this->diskFullnessLabel->setText("Permissible disk fullness");
-    this->widgetLayout->addWidget(this->diskFullnessLabel, row_number, column_number);
+    diskFullnessLabel = new QLabel(this);
+    diskFullnessLabel->setText("Permissible disk fullness");
+    widgetLayout->addWidget(diskFullnessLabel, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->diskFullnessSlider = new QSlider(Qt::Horizontal, this);
-    this->diskFullnessSlider->setSliderPosition(90);
-    this->widgetLayout->addWidget(this->diskFullnessSlider, row_number, column_number);
+    diskFullnessSlider = new QSlider(Qt::Horizontal, this);
+    diskFullnessSlider->setSliderPosition(90);
+    widgetLayout->addWidget(diskFullnessSlider, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->freeSpaceLabel = new QLabel(this);
-    this->updateFreeSpaceLabel();
-    this->widgetLayout->addWidget(this->freeSpaceLabel, row_number, column_number, 1, 2);
+    freeSpaceLabel = new QLabel(this);
+    updateFreeSpaceLabel();
+    widgetLayout->addWidget(this->freeSpaceLabel, row_number, column_number, 1, 2);
     increment_current_position_in_widgets_grid(row_number, column_number, 1, 2);
 
-    this->timeoutLabel = new QLabel(this);
-    this->timeoutLabel->setText("Timeout");
-    this->widgetLayout->addWidget(this->timeoutLabel, row_number, column_number);
+    timeoutLabel = new QLabel(this);
+    timeoutLabel->setText("Timeout");
+    widgetLayout->addWidget(this->timeoutLabel, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->timeoutSpinBox = new QSpinBox(this);
-    this->timeoutSpinBox->setMinimum(5);
-    this->timeoutSpinBox->setMaximum(10000);
-    this->timeoutSpinBox->setValue(10);
-    this->widgetLayout->addWidget(this->timeoutSpinBox, row_number, column_number);
+    timeoutSpinBox = new QSpinBox(this);
+    timeoutSpinBox->setMinimum(5);
+    timeoutSpinBox->setMaximum(10000);
+    timeoutSpinBox->setValue(10);
+    widgetLayout->addWidget(timeoutSpinBox, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->cancelButton = new QPushButton("Hide", this);
-    this->widgetLayout->addWidget(this->cancelButton, row_number, column_number);
+    cancelButton = new QPushButton("Hide", this);
+    widgetLayout->addWidget(cancelButton, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->saveButton = new QPushButton("Save", this);
-    this->widgetLayout->addWidget(this->saveButton, row_number, column_number);
+    saveButton = new QPushButton("Save", this);
+    widgetLayout->addWidget(this->saveButton, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
-    this->widgetGroupBox = new QGroupBox(this);
-    this->widgetGroupBox->setLayout(this->widgetLayout);
+    widgetGroupBox = new QGroupBox(this);
+    widgetGroupBox->setLayout(this->widgetLayout);
 
-    this->setCentralWidget(this->widgetGroupBox);
+    setCentralWidget(this->widgetGroupBox);
 }
 
 void ControlDiskSpaceApp::updateFreeSpaceLabel()

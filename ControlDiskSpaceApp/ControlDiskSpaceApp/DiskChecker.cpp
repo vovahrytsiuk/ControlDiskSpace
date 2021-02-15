@@ -17,6 +17,7 @@ void DiskChecker::checkDisks(const QSettings& settingsInfo)
 		if (settingsInfo.contains(storageDevices[i].rootPath() + "/Limit") && 
 			settingsInfo.value(storageDevices[i].rootPath() + "/Checkable").toBool())
 		{
+			qDebug() << storageDevices[i].rootPath();
 			double freeSpace = (double)storageDevices[i].bytesFree() / 1024 / 1024 / 1024;
 			double requirements = settingsInfo.value(storageDevices[i].rootPath() 
 				+ "/Limit").toDouble();
