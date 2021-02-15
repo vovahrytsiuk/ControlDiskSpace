@@ -18,8 +18,8 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget* parent)
         &ControlDiskSpaceApp::updateFreeSpaceLabel);
     connect(this->StorageComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this,
         &ControlDiskSpaceApp::updateFreeSpaceLabel);
-   // connect(this->saveButton, &QAbstractButton::clicked, this,
-    //    &ControlDiskSpaceApp::saveSettingsChanges);
+    connect(this->saveButton, &QAbstractButton::clicked, this,
+        &ControlDiskSpaceApp::saveSettingsChanges);
     connect(this->cancelButton, &QAbstractButton::clicked, this, &QMainWindow::hide);
     
     createTrayIcon();
@@ -29,18 +29,10 @@ ControlDiskSpaceApp::ControlDiskSpaceApp(QWidget* parent)
     connect(checker, SIGNAL(showNotification(int)), this, 
         SLOT(showMessage(int)));
     connect(checker, SIGNAL(finished()), this, SLOT(showMessageBox()));
-   
-
-    //checker->runChecking();
+  
     qDebug() << "Start checker";
     checker->start();
 
-       
-
-
-    /*
-    connect(this, SIGNAL(destroyed()), this, SLOT(terminateThread()));
- */
 }
 
 
@@ -52,56 +44,6 @@ void ControlDiskSpaceApp::showMessage(int diskPosition)
    
     this->trayIcon->showMessage(titleMessage, bodyMessage);
 }
-
-
-
-
-
-
-
-//SettingsInfo ControlDiskSpaceApp::read_settings_file()
-//{
-//    SettingsInfo info;
-//    QFile settings_file(this->settingsFilePath);
-//    if (settings_file.open(QIODevice::ReadOnly | QIODevice::Text))
-//    {
-//        QTextStream in(&settings_file);
-//        int device_count = this->storageDevices.size();
-//        for (int i = 0; i < device_count; i++)
-//        {
-//            double tmp;
-//            in >> tmp;
-//            info.reqFreeSpace.push_back(tmp);
-//        }
-//        in >> info.timeout;
-//        settings_file.close();
-//    }
-//    else
-//    {
-//        QMessageBox::warning(this, "Error file", "Cannot open file");
-//    }
-//    return info;
-//}
-
-
-//void ControlDiskSpaceApp::write_settings_file(const SettingsInfo& info)
-//{
-//    QFile settings_file(this->settingsFilePath);
-//    if (settings_file.open(QIODevice::WriteOnly | QIODevice::Text))
-//    {
-//        QTextStream out(&settings_file);
-//        for (const auto& n : info.reqFreeSpace)
-//        {
-//            out << n << "\n";
-//        }
-//        out << info.timeout << "\n";
-//        settings_file.close();
-//    }
-//    else
-//    {
-//        QMessageBox::warning(this, "Error file", "Cannot open file");
-//    }
-//}
 
 void ControlDiskSpaceApp::generateStartSettings()
 {
@@ -152,7 +94,17 @@ void ControlDiskSpaceApp::fillWidgetsGrid()
 
     this->StorageComboBox = new QComboBox(this);
     this->fillStorageComboBox();
-    this->widgetLayout->addWidget(this->StorageComboBox, row_number, column_number);
+
+    this->diskCheckableLabel = new QLabel(this);
+    this->diskCheckableLabel->setText("Checkable");
+
+    this->diskCheckableCheckBox = new QCheckBox(this);
+
+    this->checkableLayout = new QHBoxLayout(this);
+    this->checkableLayout->addWidget(StorageComboBox);
+    this->checkableLayout->addWidget(diskCheckableLabel);
+    this->checkableLayout->addWidget(diskCheckableCheckBox);
+    this->widgetLayout->addLayout(checkableLayout, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
 
     this->diskFullnessLabel = new QLabel(this);
@@ -164,18 +116,6 @@ void ControlDiskSpaceApp::fillWidgetsGrid()
     this->diskFullnessSlider->setSliderPosition(90);
     this->widgetLayout->addWidget(this->diskFullnessSlider, row_number, column_number);
     increment_current_position_in_widgets_grid(row_number, column_number);
-
-
-    this->diskCheckableLabel = new QLabel(this);
-    this->diskCheckableLabel->setText("Checkable");
-    this->widgetLayout->addWidget(this->diskCheckableLabel, row_number, column_number);
-    increment_current_position_in_widgets_grid(row_number, column_number);
-
-    this->diskCheckableCheckBox = new QCheckBox(this);
-    this->widgetLayout->addWidget(this->diskCheckableCheckBox, row_number, column_number);
-    increment_current_position_in_widgets_grid(row_number, column_number);
-
-
 
     this->freeSpaceLabel = new QLabel(this);
     this->updateFreeSpaceLabel();
@@ -218,18 +158,22 @@ void ControlDiskSpaceApp::updateFreeSpaceLabel()
     this->freeSpaceLabel->setText(str);
 }
 
-/*
+
 void ControlDiskSpaceApp::saveSettingsChanges()
 {
-    auto setting_info = this->read_settings_file();
-    int index_changed = this->StorageComboBox->currentIndex();
-    double newReqFreeSpace = (double)this->storageDevices[this->StorageComboBox->currentIndex()].bytesTotal() / 1024 / 1024 / 1024;
-    newReqFreeSpace *= (100.00 - this->diskFullnessSlider->value()) / 100.00;
-    setting_info.reqFreeSpace[index_changed] = newReqFreeSpace;
-    setting_info.timeout = this->timeoutSpinBox->text().toInt();
-   // this->write_settings_file(setting_info);
+    int new_timeout = timeoutSpinBox->value();
+    QStorageInfo disk = storageDevices[StorageComboBox->currentIndex()];
+    bool checkable = diskCheckableCheckBox->isChecked();
+
+    double freeSpaceRequirement = (100.00 - this->diskFullnessSlider->value()) / 100.00;
+    freeSpaceRequirement *= disk.bytesTotal() / 1024 / 1024 / 1024;
+
+    QSettings settings(settingsFilePath, QSettings::IniFormat);
+    settings.setValue(disk.rootPath() + "/Limit", freeSpaceRequirement);
+    settings.setValue(disk.rootPath() + "/Checkable", checkable);
+    settings.setValue("Time/Timeout", new_timeout);
 }
-*/
+
 
 void ControlDiskSpaceApp::createTrayIcon()
 {
@@ -240,7 +184,6 @@ void ControlDiskSpaceApp::createTrayIcon()
     this->trayIcon->setIcon(*icon);
     setWindowIcon(*icon);
     this->trayIcon->setToolTip("DiskSpaceController");
-
 
     this->trayIconMenu = new QMenu(this);
     this->trayIconMenu->addAction(this->showAction);

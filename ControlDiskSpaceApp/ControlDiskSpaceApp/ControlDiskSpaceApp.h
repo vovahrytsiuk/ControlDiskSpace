@@ -23,19 +23,9 @@
 #include <QThread>
 #include <QDebug>
 #include <QSettings>
+#include <QHBoxLayout>
 #include <iostream>
 #include "DiskChecker.h"
-
-
-
-
-
-
-
-
-
-
-
 
 
 class ControlDiskSpaceApp : public QMainWindow
@@ -63,6 +53,8 @@ private:
     QSpinBox* timeoutSpinBox;
     QPushButton* saveButton;
     QPushButton* cancelButton;
+
+    QHBoxLayout* checkableLayout;
     QCheckBox* diskCheckableCheckBox;
     QLabel* diskCheckableLabel;
 
@@ -78,7 +70,6 @@ private:
 
     QIcon* icon;
 
-
     DiskChecker* checker;
     
     void fillWidgetsGrid();
@@ -90,14 +81,11 @@ private:
     void increment_current_position_in_widgets_grid(int& row_numbew, int& column_number, 
         int row_size, int column_size);
 
-    //SettingsInfo read_settings_file();
-   // void write_settings_file(const SettingsInfo info);
-    
-    
+   
 private slots:
     void showMessage(int diskPosition);
     void updateFreeSpaceLabel();
-   // void saveSettingsChanges();
+    void saveSettingsChanges();
    
 };
 

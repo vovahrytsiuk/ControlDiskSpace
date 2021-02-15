@@ -9,9 +9,6 @@ DiskChecker::DiskChecker(const QString& fileSettingPath, const QList<QStorageInf
 }
 
 
-
-
-
 void DiskChecker::checkDisks(const QSettings& settingsInfo)
 {
 	for (int i = 0; i < storageDevices.size(); i++)
@@ -33,12 +30,8 @@ void DiskChecker::checkDisks(const QSettings& settingsInfo)
 }
 
 
-
-
-
 void DiskChecker::run()
 {
-	qDebug() << "Run control";
 	forever
 	{
 		QSettings settings(settingFilePath, QSettings::IniFormat);
@@ -49,7 +42,6 @@ void DiskChecker::run()
 		{
 			if (isInterruptionRequested())
 			{
-				qDebug() << "intertupted";
 				return;
 			}
 			t += 100;
@@ -57,10 +49,6 @@ void DiskChecker::run()
 		}
 
 	}
-
-
-	
-	qDebug() << "FinishControl";
 	return;
 }
 
