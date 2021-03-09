@@ -1,5 +1,8 @@
 #include "ControlDiskSpaceApp.h"
 #include <QtWidgets/QApplication>
+#include <QtTest/QtTest>
+#include "TestControlDiskSpace.h" 
+#include <QMutex>
 
 
 
@@ -11,3 +14,7 @@ int main(int argc, char *argv[])
     w.show();
     return a.exec();
 }
+
+//QTEST_MAIN(TestControlDiskSpace)
+
+//#include "TestControlDiskSpace.moc"
